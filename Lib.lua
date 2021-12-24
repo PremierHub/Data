@@ -384,6 +384,7 @@ do
 							Position = UDim2.new(0.15, 0, 0.15, 0),
 							Size = UDim2.new(0, 16, 0, 16),
 							Image = "rbxassetid://7072721559",
+							ImageColor3 = theme.TextColor
 						}),
 					}),
 				}),
