@@ -1802,6 +1802,7 @@ do
 			Name = "Keybind_Element",
 			Parent = self.container,
 			BackgroundColor3 = theme.Background,
+			AutoButtonColor = false,
 			Size = UDim2.new(1, 0, 0, 30),
 		}, {
 			newInstance("UICorner", {
