@@ -1,6 +1,9 @@
 repeat
 	wait()
 until game:IsLoaded() and game:GetService("Players").LocalPlayer:FindFirstChild("PlayerGui")
+if not game:GetService("UserInputService").MouseIconEnabled then
+	game:GetService("UserInputService").MouseIconEnabled = true
+end
 
 local player = game:GetService("Players").LocalPlayer
 local mouse = player:GetMouse()
