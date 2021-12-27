@@ -1,6 +1,7 @@
 repeat
 	wait()
 until game:IsLoaded() and game:GetService("Players").LocalPlayer:FindFirstChild("PlayerGui")
+
 if not game:GetService("UserInputService").MouseIconEnabled then
 	game:GetService("UserInputService").MouseIconEnabled = true
 end
@@ -9,7 +10,7 @@ local player = game:GetService("Players").LocalPlayer
 local mouse = player:GetMouse()
 local input = game:GetService("UserInputService")
 
-local library = {}
+local library = { Enabled = true }
 local page = {}
 local section = {}
 local BindedKeys = {}
@@ -86,9 +87,8 @@ do
 		return true
 	end
 	function utility:DraggingEnabled(frame, parent)
-	
 		parent = parent or frame
-		
+
 		-- stolen from wally or kiriot, kek
 		local dragging = false
 		local dragInput, mousePos, framePos
@@ -98,7 +98,7 @@ do
 				dragging = true
 				mousePos = input.Position
 				framePos = parent.Position
-				
+
 				input.Changed:Connect(function()
 					if input.UserInputState == Enum.UserInputState.End then
 						dragging = false
@@ -116,7 +116,12 @@ do
 		input.InputChanged:Connect(function(input)
 			if input == dragInput and dragging then
 				local delta = input.Position - mousePos
-				parent.Position  = UDim2.new(framePos.X.Scale, framePos.X.Offset + delta.X, framePos.Y.Scale, framePos.Y.Offset + delta.Y)
+				parent.Position = UDim2.new(
+					framePos.X.Scale,
+					framePos.X.Offset + delta.X,
+					framePos.Y.Scale,
+					framePos.Y.Offset + delta.Y
+				)
 			end
 		end)
 	end
@@ -167,7 +172,11 @@ do
 		utility.BindedKeys = {}
 		utility.ended = {}
 
-		input.InputBegan:Connect(function(key, proc)
+		local connection
+		connection = input.InputBegan:Connect(function(key, proc)
+			if not library.Enabled then
+				connection:Disconnect()
+			end
 			if utility.BindedKeys[key.KeyCode] and not proc then
 				for i, bind in pairs(utility.BindedKeys[key.KeyCode]) do
 					bind()
@@ -192,13 +201,14 @@ do
 	end
 	function KeyPressed()
 		local key = input.InputBegan:Wait()
-		
-		while key.UserInputType ~= Enum.UserInputType.Keyboard do wait()
+
+		while key.UserInputType ~= Enum.UserInputType.Keyboard do
+			wait()
 			key = input.InputBegan:Wait()
 		end
-		
+
 		wait() -- overlapping connection
-		
+
 		return key
 	end
 	function getIndex(table, value)
@@ -219,7 +229,7 @@ do
 
 		local AntiAFK
 		AntiAFK = player.Idled:connect(function()
-			if not game.CoreGui:FindFirstChild("PremierHub") then
+			if not library.Enabled then
 				AntiAFK:Disconnect()
 			end
 			game:service("VirtualUser"):ClickButton2(Vector2.new())
@@ -405,7 +415,7 @@ do
 							Position = UDim2.new(0.15, 0, 0.15, 0),
 							Size = UDim2.new(0, 16, 0, 16),
 							Image = "rbxassetid://7072721559",
-							ImageColor3 = theme.TextColor
+							ImageColor3 = theme.TextColor,
 						}),
 					}),
 				}),
@@ -479,6 +489,13 @@ do
 
 		InitializeKeybind()
 		utility:DraggingEnabled(container.Frame, container.Frame)
+
+		container.Parent.ChildRemoved:connect(function(Obj)
+			if Obj == container then
+				library.Enabled = false
+			end
+		end)
+
 		return setmetatable({
 			container = container,
 			notifiContainer = container.notifiContainer,
@@ -683,7 +700,8 @@ do
 		})
 
 		spawn(function()
-			while true do wait()
+			while true do
+				wait()
 				wait()
 				pcall(function()
 					container.TextLabel.Text = "<b>" .. os.date("%X") .. " " .. os.date("%p") .. "</b>"
@@ -859,7 +877,10 @@ do
 			notification:Destroy()
 		end
 		spawn(function()
-			if getIndex(config, "Time") and typeof(getIndex(config, "Time")) == "number" or not getIndex(config, "Time") then
+			if
+				getIndex(config, "Time") and typeof(getIndex(config, "Time")) == "number"
+				or not getIndex(config, "Time")
+			then
 				wait(getIndex(config, "Time") or 5)
 				close()
 			end
@@ -1028,7 +1049,7 @@ do
 
 			if getIndex(config, "CallBack") then
 				getIndex(config, "CallBack")(function(...)
-					self:updateButton(button, {...})
+					self:updateButton(button, { ... })
 				end)
 			end
 
@@ -1066,65 +1087,65 @@ do
 	end
 	function section:addSlider(config)
 		config = config or {}
-        local slider
+		local slider
 
 		if getIndex(config, "Style") and getIndex(config, "Style") >= 2 then
-            slider = newInstance("ImageButton", {
-                Name = "Slider_Element",
-                BackgroundTransparency = 1,
-                Parent = self.container,
-                Size = UDim2.new(1, 0, 0, 30),
-            }, {
-                newInstance("UIListLayout", {
-                    Padding = UDim.new(0, 15),
-                    SortOrder = Enum.SortOrder.LayoutOrder,
-                    VerticalAlignment = Enum.VerticalAlignment.Center,
-                    FillDirection = Enum.FillDirection.Horizontal,
-                }),
-                newInstance("TextLabel", {
-                    Name = "Title",
+			slider = newInstance("ImageButton", {
+				Name = "Slider_Element",
+				BackgroundTransparency = 1,
+				Parent = self.container,
+				Size = UDim2.new(1, 0, 0, 30),
+			}, {
+				newInstance("UIListLayout", {
+					Padding = UDim.new(0, 15),
+					SortOrder = Enum.SortOrder.LayoutOrder,
+					VerticalAlignment = Enum.VerticalAlignment.Center,
+					FillDirection = Enum.FillDirection.Horizontal,
+				}),
+				newInstance("TextLabel", {
+					Name = "Title",
 					LayoutOrder = 1,
-                    BackgroundTransparency = 1,
-                    Font = Enum.Font.GothamBold,
-                    TextColor3 = theme.TextColor,
-                    TextSize = 12,
-                    TextXAlignment = Enum.TextXAlignment.Left,
-                }),
-                newInstance("Frame", {
-                    Name = "Slider",
+					BackgroundTransparency = 1,
+					Font = Enum.Font.GothamBold,
+					TextColor3 = theme.TextColor,
+					TextSize = 12,
+					TextXAlignment = Enum.TextXAlignment.Left,
+				}),
+				newInstance("Frame", {
+					Name = "Slider",
 					LayoutOrder = 2,
-                    BackgroundTransparency = 1,
-                    Size = UDim2.new(1, 0, 1, 0),
-                }, {
-                    newInstance("UIListLayout", {
-                        VerticalAlignment = Enum.VerticalAlignment.Center
-                    }),
-                    newInstance("Frame", {
-                        Name = "Bar",
-                        Size = UDim2.new(1, 0, 0, 4),
+					BackgroundTransparency = 1,
+					Size = UDim2.new(1, 0, 1, 0),
+				}, {
+					newInstance("UIListLayout", {
+						VerticalAlignment = Enum.VerticalAlignment.Center,
+					}),
+					newInstance("Frame", {
+						Name = "Bar",
+						Size = UDim2.new(1, 0, 0, 4),
 						BorderSizePixel = 0,
-                        BackgroundColor3 = theme.LightContrast
-                    }, {
-                        newInstance("UICorner"),
-                        newInstance("Frame", {
-                            Name = "Fill",
-                            Size = UDim2.new(0.8, 0, 1, 0),
+						BackgroundColor3 = theme.LightContrast,
+					}, {
+						newInstance("UICorner"),
+						newInstance("Frame", {
+							Name = "Fill",
+							Size = UDim2.new(0.8, 0, 1, 0),
 							BorderSizePixel = 0,
-                            BackgroundColor3 = theme.TextColor
-                        }, {
+							BackgroundColor3 = theme.TextColor,
+						}, {
 							newInstance("UIListLayout", {
 								VerticalAlignment = Enum.VerticalAlignment.Center,
 								HorizontalAlignment = Enum.HorizontalAlignment.Right,
 							}),
-                            newInstance("UICorner"),
-                            newInstance("Frame", {
-                                Name = "Circle",
-                                Size = UDim2.new(0, 10, 0, 10),
-                                BackgroundColor3 = theme.TextColor,
+							newInstance("UICorner"),
+							newInstance("Frame", {
+								Name = "Circle",
+								Size = UDim2.new(0, 10, 0, 10),
+								BackgroundColor3 = theme.TextColor,
 								BorderSizePixel = 0,
-                                BackgroundTransparency = 1,
-                            }, {
-                                newInstance("UICorner"),
+								BackgroundTransparency = 1,
+							}, {
+								newInstance("UICorner"),
 								newInstance("Frame", {
 									Name = "Value",
 									ClipsDescendants = true,
@@ -1147,146 +1168,147 @@ do
 										TextSize = 12,
 										TextXAlignment = Enum.TextXAlignment.Center,
 										TextTransparency = 1,
-									})
-								})
-                            })
-                        })
-                    })
-                })
-            })
-        else
-            slider = newInstance("ImageButton", {
-                Name = "Slider_Element",
-                BackgroundTransparency = 1,
-                Parent = self.container,
-                Size = UDim2.new(1, 0, 0, 40),
-            }, {
-                newInstance("UIListLayout", {
-                    Padding = UDim.new(0, 0),
-                    SortOrder = Enum.SortOrder.LayoutOrder,
-                    FillDirection = Enum.FillDirection.Vertical,
-					VerticalAlignment = Enum.VerticalAlignment.Center
-                }),
-                newInstance("TextLabel", {
-                    Name = "Title",
+									}),
+								}),
+							}),
+						}),
+					}),
+				}),
+			})
+		else
+			slider = newInstance("ImageButton", {
+				Name = "Slider_Element",
+				BackgroundTransparency = 1,
+				Parent = self.container,
+				Size = UDim2.new(1, 0, 0, 40),
+			}, {
+				newInstance("UIListLayout", {
+					Padding = UDim.new(0, 0),
+					SortOrder = Enum.SortOrder.LayoutOrder,
+					FillDirection = Enum.FillDirection.Vertical,
+					VerticalAlignment = Enum.VerticalAlignment.Center,
+				}),
+				newInstance("TextLabel", {
+					Name = "Title",
 					LayoutOrder = 1,
-                    BackgroundTransparency = 1,
-                    Font = Enum.Font.GothamBold,
-                    TextColor3 = theme.TextColor,
-                    TextSize = 12,
-                    TextXAlignment = Enum.TextXAlignment.Left,
-                }),
-                newInstance("Frame", {
-                    BackgroundTransparency = 1,
+					BackgroundTransparency = 1,
+					Font = Enum.Font.GothamBold,
+					TextColor3 = theme.TextColor,
+					TextSize = 12,
+					TextXAlignment = Enum.TextXAlignment.Left,
+				}),
+				newInstance("Frame", {
+					BackgroundTransparency = 1,
 					LayoutOrder = 2,
-                    Size = UDim2.new(1, 0, 0, 20),
-                }, {
-                    newInstance("UIListLayout", {
-                        Padding = UDim.new(0, 0),
+					Size = UDim2.new(1, 0, 0, 20),
+				}, {
+					newInstance("UIListLayout", {
+						Padding = UDim.new(0, 0),
 						SortOrder = Enum.SortOrder.LayoutOrder,
-                        FillDirection = Enum.FillDirection.Horizontal,
-                        VerticalAlignment = Enum.VerticalAlignment.Center,
-                        HorizontalAlignment = Enum.HorizontalAlignment.Center,
-                    }),
-                    newInstance("Frame", {
-                        Name = "Slider",
+						FillDirection = Enum.FillDirection.Horizontal,
+						VerticalAlignment = Enum.VerticalAlignment.Center,
+						HorizontalAlignment = Enum.HorizontalAlignment.Center,
+					}),
+					newInstance("Frame", {
+						Name = "Slider",
 						LayoutOrder = 1,
-                        BackgroundTransparency = 1,
-                        Size = UDim2.new(1, -86, 1, 0),
-                    }, {
-                        newInstance("UIListLayout", {
-                            VerticalAlignment = Enum.VerticalAlignment.Center
-                        }),
-                        newInstance("Frame", {
-                            Name = "Bar",
-                            Size = UDim2.new(1, 0, 0, 4),
+						BackgroundTransparency = 1,
+						Size = UDim2.new(1, -86, 1, 0),
+					}, {
+						newInstance("UIListLayout", {
+							VerticalAlignment = Enum.VerticalAlignment.Center,
+						}),
+						newInstance("Frame", {
+							Name = "Bar",
+							Size = UDim2.new(1, 0, 0, 4),
 							BorderSizePixel = 0,
-                            BackgroundColor3 = theme.LightContrast
-                        }, {
-                            newInstance("UICorner"),
-                            newInstance("Frame", {
-                                Name = "Fill",
-                                Size = UDim2.new(0.8, 0, 1, 0),
+							BackgroundColor3 = theme.LightContrast,
+						}, {
+							newInstance("UICorner"),
+							newInstance("Frame", {
+								Name = "Fill",
+								Size = UDim2.new(0.8, 0, 1, 0),
 								BorderSizePixel = 0,
-                                BackgroundColor3 = theme.TextColor
-                            }, {
+								BackgroundColor3 = theme.TextColor,
+							}, {
 								newInstance("UIListLayout", {
 									VerticalAlignment = Enum.VerticalAlignment.Center,
 									HorizontalAlignment = Enum.HorizontalAlignment.Right,
 								}),
-                                newInstance("UICorner"),
-                                newInstance("Frame", {
-                                    Name = "Circle",
-                                    Size = UDim2.new(0, 10, 0, 10),
-                                    BackgroundColor3 = theme.TextColor,
+								newInstance("UICorner"),
+								newInstance("Frame", {
+									Name = "Circle",
+									Size = UDim2.new(0, 10, 0, 10),
+									BackgroundColor3 = theme.TextColor,
 									BorderSizePixel = 0,
-                                    BackgroundTransparency = 1,
-                                }, {
-                                    newInstance("UICorner"),
-                                })
-                            })
-                        })
-                    }),
+									BackgroundTransparency = 1,
+								}, {
+									newInstance("UICorner"),
+								}),
+							}),
+						}),
+					}),
 					newInstance("Frame", {
 						BackgroundTransparency = 1,
 						LayoutOrder = 2,
-						Size = UDim2.new(0, 5, 0, 0)
+						Size = UDim2.new(0, 5, 0, 0),
 					}),
 					newInstance("ImageButton", {
-                        Name = "plus",
+						Name = "plus",
 						LayoutOrder = 3,
 						BackgroundTransparency = 1,
 						ImageColor3 = theme.TextColor,
 						Image = "rbxassetid://7072720870",
-						Size = UDim2.new(0, 18, 0, 18)
+						Size = UDim2.new(0, 18, 0, 18),
 					}),
-                    newInstance("TextBox", {
-                        Name = "TextBox",
+					newInstance("TextBox", {
+						Name = "TextBox",
 						LayoutOrder = 4,
-                        BackgroundColor3 = theme.Background,
-                        BorderSizePixel = 0,
-                        Size = UDim2.new(0, 40, 0, 18),
-                        ZIndex = 3,
-                        Font = Enum.Font.GothamSemibold,
-                        Text = getIndex(config, "Default") or getIndex(config, "Min") or 0,
-                        TextColor3 = theme.TextColor,
-                        TextSize = 12,
-                        TextXAlignment = Enum.TextXAlignment.Right
-                    }, {
-                        newInstance("UICorner"),
-                        newInstance("UIPadding", {
-                            PaddingRight = UDim.new(0,5)
-                        })
-                    }),
+						BackgroundColor3 = theme.Background,
+						BorderSizePixel = 0,
+						Size = UDim2.new(0, 40, 0, 18),
+						ZIndex = 3,
+						Font = Enum.Font.GothamSemibold,
+						Text = getIndex(config, "Default") or getIndex(config, "Min") or 0,
+						TextColor3 = theme.TextColor,
+						TextSize = 12,
+						TextXAlignment = Enum.TextXAlignment.Right,
+					}, {
+						newInstance("UICorner"),
+						newInstance("UIPadding", {
+							PaddingRight = UDim.new(0, 5),
+						}),
+					}),
 					newInstance("ImageButton", {
-                        Name = "minus",
+						Name = "minus",
 						LayoutOrder = 5,
 						BackgroundTransparency = 1,
 						ImageColor3 = theme.TextColor,
 						Image = "rbxassetid://7072719338",
-						Size = UDim2.new(0, 18, 0, 18)
+						Size = UDim2.new(0, 18, 0, 18),
 					}),
-                }),
-            })
+				}),
+			})
 		end
 
 		table.insert(self.modules, slider)
-	
+
 		local allowed = {
 			[""] = true,
-			["-"] = true
+			["-"] = true,
 		}
 
 		local title = slider.Title
 		local textbox = slider:FindFirstChild("Frame") and slider:FindFirstChild("Frame").TextBox
-		local circle = slider:FindFirstChild("Frame") and slider.Frame:FindFirstChild("Slider").Bar.Fill.Circle or slider:FindFirstChild("Slider") and slider:FindFirstChild("Slider").Bar.Fill.Circle
+		local circle = slider:FindFirstChild("Frame") and slider.Frame:FindFirstChild("Slider").Bar.Fill.Circle
+			or slider:FindFirstChild("Slider") and slider:FindFirstChild("Slider").Bar.Fill.Circle
 
 		for i = 1, (getIndex(config, "Title") or "Slider"):len() do
 			title.Text = (getIndex(config, "Title") or "Slider"):sub(1, i)
 			title.Size = UDim2.new(0, title.TextBounds.X, 0, title.TextBounds.Y)
 		end
 		if slider:FindFirstChild("Slider") then
-			slider:FindFirstChild("Slider").Size = UDim2.new(1, -title.AbsoluteSize.X -20, 0, title.AbsoluteSize.Y)
+			slider:FindFirstChild("Slider").Size = UDim2.new(1, -title.AbsoluteSize.X - 20, 0, title.AbsoluteSize.Y)
 		end
 
 		local value = getIndex(config, "Default") or getIndex(config, "Min") or 0
@@ -1295,12 +1317,15 @@ do
 		local callback = function(value)
 			if getIndex(config, "CallBack") then
 				getIndex(config, "CallBack")(value, function(...)
-					self:updateSlider(slider, {...})
+					self:updateSlider(slider, { ... })
 				end)
 			end
 		end
 
-		self:updateSlider(slider, { Title = nil, Value = value, Min = getIndex(config, "Min") or 0, Max = getIndex(config, "Max") or 0 })
+		self:updateSlider(
+			slider,
+			{ Title = nil, Value = value, Min = getIndex(config, "Min") or 0, Max = getIndex(config, "Max") or 0 }
+		)
 
 		if slider:FindFirstChild("Frame") and slider.Frame:FindFirstChild("plus") then
 			slider.Frame:FindFirstChild("plus").MouseButton1Click:Connect(function()
@@ -1322,34 +1347,44 @@ do
 		slider.InputBegan:Connect(function(input)
 			if input.UserInputType == Enum.UserInputType.MouseButton1 then
 				dragging = true
-			
+
 				input.Changed:Connect(function()
 					if input.UserInputState == Enum.UserInputState.End then
 						dragging = false
 					end
 				end)
 
-				while dragging do wait()
-					BetterTween(circle, {BackgroundTransparency = 0}, 0.1)
+				while dragging do
+					wait()
+					BetterTween(circle, { BackgroundTransparency = 0 }, 0.1)
 					if circle:FindFirstChild("Value") then
-						BetterTween(circle.Value, {BackgroundTransparency = 0}, 0.1)
-						BetterTween(circle.Value.TextLabel, {TextTransparency = 0}, 0.1)
+						BetterTween(circle.Value, { BackgroundTransparency = 0 }, 0.1)
+						BetterTween(circle.Value.TextLabel, { TextTransparency = 0 }, 0.1)
 					end
-	
-					value = self:updateSlider(slider, { Title = nil, Value = nil, Min = getIndex(config, "Min") or 0, Max = getIndex(config, "Max") or 0, LastValue = value })
+
+					value = self:updateSlider(
+						slider,
+						{
+							Title = nil,
+							Value = nil,
+							Min = getIndex(config, "Min") or 0,
+							Max = getIndex(config, "Max") or 0,
+							LastValue = value,
+						}
+					)
 					callback(value)
 					if circle:FindFirstChild("Value") then
 						circle.Value.TextLabel.Text = value
 					end
-	
+
 					BetterWait()
 				end
-	
+
 				wait(0.5)
-				BetterTween(circle, {BackgroundTransparency = 1}, 0.2)
+				BetterTween(circle, { BackgroundTransparency = 1 }, 0.2)
 				if circle:FindFirstChild("Value") then
-					BetterTween(circle.Value, {BackgroundTransparency = 1}, 0.2)
-					BetterTween(circle.Value.TextLabel, {TextTransparency = 1}, 0.2)
+					BetterTween(circle.Value, { BackgroundTransparency = 1 }, 0.2)
+					BetterTween(circle.Value.TextLabel, { TextTransparency = 1 }, 0.2)
 				end
 			end
 		end)
@@ -1357,7 +1392,15 @@ do
 		if textbox then
 			textbox.FocusLost:Connect(function()
 				if not tonumber(textbox.Text) then
-					value = self:updateSlider(slider, { Title = nil, Value = value, Min = getIndex(config, "Min") or 0, Max = getIndex(config, "Max") or 0 })
+					value = self:updateSlider(
+						slider,
+						{
+							Title = nil,
+							Value = value,
+							Min = getIndex(config, "Min") or 0,
+							Max = getIndex(config, "Max") or 0,
+						}
+					)
 					callback(value)
 				elseif tonumber(textbox.Text) > (getIndex(config, "Max") or 0) then
 					textbox.Text = getIndex(config, "Max") or 0
@@ -1365,14 +1408,25 @@ do
 			end)
 			textbox:GetPropertyChangedSignal("Text"):Connect(function()
 				local text = textbox.Text
-	
+
 				if not allowed[text] and not tonumber(text) then
 					textbox.Text = text:sub(1, #text - 1)
 				elseif not allowed[text] then
-					value = self:updateSlider(slider, { Title = nil, Value = tonumber(text) or value, Min = getIndex(config, "Min") or 0, Max = getIndex(config, "Max") or 0 })
+					value = self:updateSlider(
+						slider,
+						{
+							Title = nil,
+							Value = tonumber(text) or value,
+							Min = getIndex(config, "Min") or 0,
+							Max = getIndex(config, "Max") or 0,
+						}
+					)
 					callback(value)
 				end
-				textbox.Text = textbox.Text:sub(1, getIndex(config, "Max") and (tostring(getIndex(config, "Max"))):len() or 0)
+				textbox.Text = textbox.Text:sub(
+					1,
+					getIndex(config, "Max") and (tostring(getIndex(config, "Max"))):len() or 0
+				)
 			end)
 		end
 
@@ -1412,7 +1466,7 @@ do
 							newInstance("UICorner", {
 								CornerRadius = UDim.new(100, 100),
 							}),
-						})
+						}),
 					}),
 					newInstance("TextLabel", {
 						Name = "Title",
@@ -1424,8 +1478,8 @@ do
 						Text = getIndex(config, "Title") or "Toggle",
 						TextColor3 = theme.TextColor,
 						TextSize = 12,
-						TextXAlignment = Enum.TextXAlignment.Left
-					})
+						TextXAlignment = Enum.TextXAlignment.Left,
+					}),
 				})
 			end
 		else
@@ -1449,7 +1503,7 @@ do
 					Text = getIndex(config, "Title") or "Toggle",
 					TextColor3 = theme.TextColor,
 					TextSize = 12,
-					TextXAlignment = Enum.TextXAlignment.Left
+					TextXAlignment = Enum.TextXAlignment.Left,
 				}),
 				newInstance("Frame", {
 					BackgroundColor3 = theme.DarkContrast,
@@ -1469,29 +1523,29 @@ do
 						newInstance("UICorner", {
 							CornerRadius = UDim.new(100, 100),
 						}),
-					})
-				})
+					}),
+				}),
 			})
 		end
 		local button = toggle.Frame.Button
 
 		table.insert(self.modules, toggle)
 		--self:Resize()
-		
+
 		local active = getIndex(config, "Default") or false
 		self:updateToggle(toggle, { Default = active })
-		
+
 		toggle.MouseButton1Click:Connect(function()
 			active = not active
 			self:updateToggle(toggle, { Default = active })
 
 			if getIndex(config, "CallBack") then
 				getIndex(config, "CallBack")(active, function(...)
-					self:updateToggle(toggle, {...})
+					self:updateToggle(toggle, { ... })
 				end)
 			end
 		end)
-		
+
 		return toggle
 	end
 	function section:addCheckbox(config)
@@ -1510,7 +1564,7 @@ do
 			newInstance("ImageButton", {
 				BackgroundColor3 = theme.TextColor,
 				Size = UDim2.new(0, 20, 0, 20),
-				AutoButtonColor = false
+				AutoButtonColor = false,
 			}, {
 				newInstance("UICorner", {
 					CornerRadius = UDim.new(0, 5),
@@ -1531,7 +1585,7 @@ do
 					Image = "rbxassetid://7072706620",
 					ImageColor3 = theme.DarkContrast,
 					ImageTransparency = 1,
-				})
+				}),
 			}),
 			newInstance("TextLabel", {
 				Name = "Title",
@@ -1543,13 +1597,12 @@ do
 				Text = getIndex(config, "Title") or "Checkbox",
 				TextColor3 = theme.TextColor,
 				TextSize = 12,
-				TextXAlignment = Enum.TextXAlignment.Left
-			})
+				TextXAlignment = Enum.TextXAlignment.Left,
+			}),
 		})
 
-		
 		local active = getIndex(config, "Default") or false
-		
+
 		checkbox.MouseButton1Click:Connect(function()
 			active = not active
 			PopAnim(checkbox.ImageButton, 10)
@@ -1557,14 +1610,14 @@ do
 
 			if getIndex(config, "CallBack") then
 				getIndex(config, "CallBack")(active, function(...)
-					self:updateCheckbox(checkbox, {...})
+					self:updateCheckbox(checkbox, { ... })
 				end)
 			end
 		end)
 
 		table.insert(self.modules, checkbox)
 		--self:Resize()
-		
+
 		return checkbox
 	end
 	function section:addDropdown(config)
@@ -1574,11 +1627,11 @@ do
 			Parent = self.container,
 			BackgroundTransparency = 1,
 			Size = UDim2.new(1, 0, 0, 30),
-			ClipsDescendants = true
+			ClipsDescendants = true,
 		}, {
 			newInstance("UIListLayout", {
 				SortOrder = Enum.SortOrder.LayoutOrder,
-				Padding = UDim.new(0, 4)
+				Padding = UDim.new(0, 4),
 			}),
 			newInstance("Frame", {
 				BackgroundColor3 = theme.Background,
@@ -1595,7 +1648,7 @@ do
 					SortOrder = Enum.SortOrder.LayoutOrder,
 					FillDirection = Enum.FillDirection.Horizontal,
 					VerticalAlignment = Enum.VerticalAlignment.Center,
-					HorizontalAlignment = Enum.HorizontalAlignment.Center
+					HorizontalAlignment = Enum.HorizontalAlignment.Center,
 				}),
 				newInstance("UICorner", {
 					CornerRadius = UDim.new(0, 5),
@@ -1612,7 +1665,7 @@ do
 					Text = "",
 					TextColor3 = theme.TextColor,
 					TextSize = 12,
-					TextXAlignment = Enum.TextXAlignment.Left
+					TextXAlignment = Enum.TextXAlignment.Left,
 				}),
 				newInstance("Frame", {
 					LayoutOrder = 2,
@@ -1625,8 +1678,8 @@ do
 						Size = UDim2.new(1, 0, 1, 0),
 						Image = "rbxassetid://5012539403",
 						ImageColor3 = theme.TextColor,
-					})
-				})
+					}),
+				}),
 			}),
 			newInstance("ImageLabel", {
 				Name = "List",
@@ -1636,9 +1689,9 @@ do
 				ZIndex = 2,
 				Image = "rbxassetid://5028857472",
 				ImageColor3 = theme.Background,
-                ImageTransparency = theme.Transparency,
+				ImageTransparency = theme.Transparency,
 				ScaleType = Enum.ScaleType.Slice,
-				SliceCenter = Rect.new(2, 2, 298, 298)
+				SliceCenter = Rect.new(2, 2, 298, 298),
 			}, {
 				newInstance("ScrollingFrame", {
 					Active = true,
@@ -1650,67 +1703,102 @@ do
 					CanvasSize = UDim2.new(0, 0, 0, 120),
 					ZIndex = 2,
 					ScrollBarThickness = 3,
-					ScrollBarImageColor3 = theme.TextColor
+					ScrollBarImageColor3 = theme.TextColor,
 				}, {
 					newInstance("UIListLayout", {
 						SortOrder = Enum.SortOrder.LayoutOrder,
-						Padding = UDim.new(0, 4)
-					})
-				})
-			})
+						Padding = UDim.new(0, 4),
+					}),
+				}),
+			}),
 		})
-		
+
 		table.insert(self.modules, dropdown)
 		--self:Resize()
-		
+
 		local search = dropdown.Frame
 		local focused
-		
+
 		local list = getIndex(config, "List") or {}
 		local multiList = {}
-		
+
 		search.Frame.ImageButton.MouseButton1Click:Connect(function()
 			if search.Frame.ImageButton.Rotation == 0 then
 				-- BetterTween(search.Frame.ImageButton, {Rotation = 180}, 0.3)
-				self:updateDropdown(dropdown, { Multi = false, Default = getIndex(config, "Default"), List = list, CallBack = getIndex(config, "CallBack"), MultiList = multiList })
+				self:updateDropdown(
+					dropdown,
+					{
+						Multi = false,
+						Default = getIndex(config, "Default"),
+						List = list,
+						CallBack = getIndex(config, "CallBack"),
+						MultiList = multiList,
+					}
+				)
 			else
 				-- BetterTween(search.Frame.ImageButton, {Rotation = 0}, 0.3)
-				self:updateDropdown(dropdown, { Multi = false, Default = getIndex(config, "Default"), CallBack = getIndex(config, "CallBack"), MultiList = multiList })
+				self:updateDropdown(
+					dropdown,
+					{
+						Multi = false,
+						Default = getIndex(config, "Default"),
+						CallBack = getIndex(config, "CallBack"),
+						MultiList = multiList,
+					}
+				)
 			end
 		end)
-		
+
 		search.TextBox.Focused:Connect(function()
 			if search.Frame.ImageButton.Rotation == 0 then
-				BetterTween(search.Frame.ImageButton, {Rotation = 180}, 0.3)
-				self:updateDropdown(dropdown, { Multi = false, Default = getIndex(config, "Default"), List = list, CallBack = getIndex(config, "CallBack"), MultiList = multiList })
+				BetterTween(search.Frame.ImageButton, { Rotation = 180 }, 0.3)
+				self:updateDropdown(
+					dropdown,
+					{
+						Multi = false,
+						Default = getIndex(config, "Default"),
+						List = list,
+						CallBack = getIndex(config, "CallBack"),
+						MultiList = multiList,
+					}
+				)
 			end
-			
+
 			focused = true
 		end)
-		
+
 		search.TextBox.FocusLost:Connect(function()
 			focused = false
 		end)
-		
+
 		search.TextBox:GetPropertyChangedSignal("Text"):Connect(function()
 			if focused then
 				local list = utility:Sort(search.TextBox.Text, list)
 				list = #list ~= 0 and list
-				
-				self:updateDropdown(dropdown, { Multi = false, Default = getIndex(config, "Default"), List = list, CallBack = getIndex(config, "CallBack"), MultiList = multiList })
+
+				self:updateDropdown(
+					dropdown,
+					{
+						Multi = false,
+						Default = getIndex(config, "Default"),
+						List = list,
+						CallBack = getIndex(config, "CallBack"),
+						MultiList = multiList,
+					}
+				)
 			end
 		end)
-		
+
 		dropdown:GetPropertyChangedSignal("Size"):Connect(function()
 			self:Resize()
 			self.page:Resize()
 		end)
-		
+
 		return dropdown
 	end
 	function section:addKeybind(config)
 		config = config or {}
-        local keybind = newInstance("ImageButton", {
+		local keybind = newInstance("ImageButton", {
 			Name = "Keybind_Element",
 			Parent = self.container,
 			BackgroundColor3 = theme.Background,
@@ -1730,7 +1818,7 @@ do
 				Text = getIndex(config, "Title") or "KeyBind",
 				TextColor3 = theme.TextColor,
 				TextSize = 12,
-				TextXAlignment = Enum.TextXAlignment.Left
+				TextXAlignment = Enum.TextXAlignment.Left,
 			}),
 			newInstance("ImageLabel", {
 				Name = "Button",
@@ -1750,61 +1838,62 @@ do
 					Font = Enum.Font.GothamSemibold,
 					Text = getIndex(config, "default") and getIndex(config, "default").Name or "None",
 					TextColor3 = theme.TextColor,
-					TextSize = 11
-				})
-			})
+					TextSize = 11,
+				}),
+			}),
 		})
-		
+
 		table.insert(self.modules, keybind)
 		--self:Resize()
-		
+
 		local text = keybind.Button.Text
 		local button = keybind.Button
-		
+
 		local animate = function()
 			if button.ImageTransparency == theme.Transparency then
 				utility:Pop(button, 10)
 			end
 		end
-		
-		self.binds[keybind] = {callback = function()
-			animate()
-			
-			if getIndex(config, "callback") then
-				getIndex(config, "callback")(function(...)
-					self:updateKeybind(keybind, {...})
-				end)
-			end
-		end}
-		
+
+		self.binds[keybind] = {
+			callback = function()
+				animate()
+
+				if getIndex(config, "callback") then
+					getIndex(config, "callback")(function(...)
+						self:updateKeybind(keybind, { ... })
+					end)
+				end
+			end,
+		}
+
 		if getIndex(config, "default") and getIndex(config, "callback") then
 			self:updateKeybind(keybind, { key = getIndex(config, "default") })
 		end
-		
+
 		keybind.MouseButton1Click:Connect(function()
-			
 			animate()
-			
+
 			if self.binds[keybind].connection then -- unbind
 				return self:updateKeybind(keybind)
 			end
-			
+
 			if text.Text == "None" then -- new bind
 				text.Text = "..."
-				
+
 				local key = KeyPressed()
-				
+
 				self:updateKeybind(keybind, { key = key.KeyCode })
 				animate()
-				
+
 				if getIndex(config, "changedCallback") then
 					getIndex(config, "changedCallback")(key, function(...)
-						self:updateKeybind(keybind, {...})
+						self:updateKeybind(keybind, { ... })
 					end)
 				end
 			end
 		end)
-		
+
 		return keybind
 	end
 	--#endregion
@@ -1828,51 +1917,59 @@ do
 	function section:updateSlider(slider, config)
 		config = config or {}
 		slider = self:getModule(slider)
-		
+
 		if getIndex(config, "Title") then
 			for i = 1, getIndex(config, "Title"):len() do
 				slider.Title.Text = getIndex(config, "Title"):sub(1, i)
 				slider.Title.Size = UDim2.new(0, slider.Title.TextBounds.X, 0, slider.Title.TextBounds.Y)
 			end
 			if slider:FindFirstChild("Slider") then
-				slider:FindFirstChild("Slider").Size = UDim2.new(1, -slider.Title.AbsoluteSize.X -20, 0, slider.Title.AbsoluteSize.Y)
+				slider:FindFirstChild("Slider").Size = UDim2.new(
+					1,
+					-slider.Title.AbsoluteSize.X - 20,
+					0,
+					slider.Title.AbsoluteSize.Y
+				)
 			end
 		end
 
-		local bar = slider:FindFirstChild("Frame") and slider.Frame:FindFirstChild("Slider").Bar or slider:FindFirstChild("Slider") and slider:FindFirstChild("Slider").Bar
+		local bar = slider:FindFirstChild("Frame") and slider.Frame:FindFirstChild("Slider").Bar
+			or slider:FindFirstChild("Slider") and slider:FindFirstChild("Slider").Bar
 
 		local percent = (mouse.X - bar.AbsolutePosition.X) / bar.AbsoluteSize.X
-		
+
 		if getIndex(config, "Value") then -- support negative ranges
-			percent = (getIndex(config, "Value") - getIndex(config, "Min")) / (getIndex(config, "Max") - getIndex(config, "Min"))
+			percent = (getIndex(config, "Value") - getIndex(config, "Min"))
+				/ (getIndex(config, "Max") - getIndex(config, "Min"))
 		end
-		
+
 		percent = math.clamp(percent, 0, 1)
-		config.Value = getIndex(config, "Value") or math.floor(getIndex(config, "Min") + (getIndex(config, "Max") - getIndex(config, "Min")) * percent)
-		
+		config.Value = getIndex(config, "Value")
+			or math.floor(getIndex(config, "Min") + (getIndex(config, "Max") - getIndex(config, "Min")) * percent)
+
 		if slider:FindFirstChild("Frame") then
 			slider:FindFirstChild("Frame").TextBox.Text = getIndex(config, "Value")
 		end
-		BetterTween(bar.Fill, {Size = UDim2.new(percent, 0, 1, 0)}, 0.1)
-		
+		BetterTween(bar.Fill, { Size = UDim2.new(percent, 0, 1, 0) }, 0.1)
+
 		return getIndex(config, "Value")
 	end
 	function section:updateToggle(toggle, config)
 		config = config or {}
 		toggle = self:getModule(toggle)
-		
+
 		local position = {
 			In = UDim2.new(0, 0, 0, 0),
-			Out = UDim2.new(1, -15, 0, 0)
+			Out = UDim2.new(1, -15, 0, 0),
 		}
-		
+
 		local Button = toggle.Frame.Button
 		config.Default = getIndex(config, "Default") and "Out" or "In"
-		
+
 		if getIndex(config, "Title") then
 			toggle.Title.Text = getIndex(config, "Title")
 		end
-		
+
 		if getIndex(config, "Default") == "In" then
 			BetterTween(Button, { Position = position[getIndex(config, "Default")] }, 0.2)
 		end
@@ -1884,11 +1981,11 @@ do
 	function section:updateCheckbox(checkbox, config)
 		config = config or {}
 		checkbox = self:getModule(checkbox)
-		
+
 		if getIndex(config, "Title") then
 			checkbox.Title.Text = getIndex(config, "Title")
 		end
-		
+
 		wait(0.2)
 		checkbox.ImageButton.Frame.Visible = not getIndex(config, "Default")
 		if getIndex(config, "Default") then
@@ -1900,21 +1997,21 @@ do
 	function section:updateDropdown(dropdown, config)
 		config = config or {}
 		dropdown = self:getModule(dropdown)
-		
+
 		if getIndex(config, "Title") then
 			dropdown.Frame.TextBox.Text = getIndex(config, "Title")
 		end
-		
+
 		local entries = 0
-		
+
 		-- PopAnim(dropdown.Frame, 10)
-		
+
 		for i, button in pairs(dropdown.List.ScrollingFrame:GetChildren()) do
 			if button:IsA("ImageButton") then
 				button:Destroy()
 			end
 		end
-		
+
 		for i, value in pairs(getIndex(config, "List") or {}) do
 			if not table.find(getIndex(config, "MultiList"), value) then
 				local button = newInstance("ImageButton", {
@@ -1923,7 +2020,7 @@ do
 					Size = UDim2.new(1, 0, 0, 30),
 					BackgroundColor3 = theme.DarkContrast,
 					ZIndex = 2,
-					AutoButtonColor = false
+					AutoButtonColor = false,
 				}, {
 					newInstance("UICorner", {
 						CornerRadius = UDim.new(0, 5),
@@ -1937,10 +2034,10 @@ do
 						TextColor3 = theme.TextColor,
 						TextSize = 12,
 						ZIndex = 2,
-						TextXAlignment = Enum.TextXAlignment.Left
-					})
+						TextXAlignment = Enum.TextXAlignment.Left,
+					}),
 				})
-				
+
 				button.MouseButton1Click:Connect(function()
 					if getIndex(config, "CallBack") then
 						getIndex(config, "CallBack")(value, function(...)
@@ -1949,38 +2046,79 @@ do
 					end
 					if getIndex(config, "Multi") then
 						if table.find(getIndex(config, "MultiList"), value) then
-							table.remove(getIndex(config, "MultiList"), table.find(getIndex(config, "MultiList"), value))
-	
-							self:updateDropdown(dropdown, { Title = getIndex(config, "Default") and getIndex(config, "Default") .. " | " .. table.concat(getIndex(config, "MultiList"), ", ") or table.concat(getIndex(config, "MultiList"), ", "), Multi = getIndex(config, "Multi"), Default = getIndex(config, "Default"), CallBack = getIndex(config, "CallBack") })
+							table.remove(
+								getIndex(config, "MultiList"),
+								table.find(getIndex(config, "MultiList"), value)
+							)
+
+							self:updateDropdown(
+								dropdown,
+								{
+									Title = getIndex(config, "Default")
+											and getIndex(config, "Default") .. " | " .. table.concat(
+												getIndex(config, "MultiList"),
+												", "
+											)
+										or table.concat(getIndex(config, "MultiList"), ", "),
+									Multi = getIndex(config, "Multi"),
+									Default = getIndex(config, "Default"),
+									CallBack = getIndex(config, "CallBack"),
+								}
+							)
 						else
 							table.insert(getIndex(config, "MultiList"), value)
-	
-							self:updateDropdown(dropdown, { Title = getIndex(config, "Default") and getIndex(config, "Default") .. " | " .. table.concat(getIndex(config, "MultiList"), ", ") or table.concat(getIndex(config, "MultiList"), ", "), Multi = getIndex(config, "Multi"), Default = getIndex(config, "Default"), CallBack = getIndex(config, "CallBack") })
+
+							self:updateDropdown(
+								dropdown,
+								{
+									Title = getIndex(config, "Default")
+											and getIndex(config, "Default") .. " | " .. table.concat(
+												getIndex(config, "MultiList"),
+												", "
+											)
+										or table.concat(getIndex(config, "MultiList"), ", "),
+									Multi = getIndex(config, "Multi"),
+									Default = getIndex(config, "Default"),
+									CallBack = getIndex(config, "CallBack"),
+								}
+							)
 						end
 					else
 						table.clear(getIndex(config, "MultiList"))
 						table.insert(getIndex(config, "MultiList"), value)
-						self:updateDropdown(dropdown, { Title = getIndex(config, "Default") and getIndex(config, "Default") .. " | " .. value or value, Multi = getIndex(config, "Multi"), Default = getIndex(config, "Default"), CallBack = getIndex(config, "CallBack") })
+						self:updateDropdown(
+							dropdown,
+							{
+								Title = getIndex(config, "Default") and getIndex(config, "Default") .. " | " .. value
+									or value,
+								Multi = getIndex(config, "Multi"),
+								Default = getIndex(config, "Default"),
+								CallBack = getIndex(config, "CallBack"),
+							}
+						)
 					end
 				end)
-				
+
 				entries = entries + 1
 			end
 		end
-		
+
 		local frame = dropdown.List.ScrollingFrame
-		
-		BetterTween(dropdown, {Size = UDim2.new(1, 0, 0, (entries == 0 and 30) or math.clamp(entries, 0, 3) * 34 + 38)}, 0.3)
-		BetterTween(dropdown.Frame.Frame.ImageButton, {Rotation = getIndex(config, "List") and 180 or 0}, 0.3)
+
+		BetterTween(
+			dropdown,
+			{ Size = UDim2.new(1, 0, 0, (entries == 0 and 30) or math.clamp(entries, 0, 3) * 34 + 38) },
+			0.3
+		)
+		BetterTween(dropdown.Frame.Frame.ImageButton, { Rotation = getIndex(config, "List") and 180 or 0 }, 0.3)
 
 		if entries > 3 then
-		
 			for i, button in pairs(dropdown.List.ScrollingFrame:GetChildren()) do
 				if button:IsA("ImageButton") then
 					button.Size = UDim2.new(1, -6, 0, 30)
 				end
 			end
-			
+
 			frame.CanvasSize = UDim2.new(0, 0, 0, (entries * 34) - 4)
 			frame.ScrollBarImageTransparency = 0
 		else
@@ -1991,18 +2129,18 @@ do
 	function section:updateKeybind(keybind, config)
 		config = config or {}
 		keybind = self:getModule(keybind)
-		
+
 		local text = keybind.Button.Text
 		local bind = self.binds[keybind]
-		
+
 		if getIndex(config, "title") then
 			keybind.Title.Text = getIndex(config, "title")
 		end
-		
+
 		if bind.connection then
 			bind.connection = bind.connection:UnBind()
 		end
-			
+
 		if getIndex(config, "key") then
 			self.binds[keybind].connection = BindToKey(getIndex(config, "key"), bind.callback)
 			text.Text = getIndex(config, "key").Name
