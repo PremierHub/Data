@@ -855,8 +855,13 @@ do
 				}),
 			}),
 		})
-
-		BetterTween(notification, { Size = UDim2.new(0, 250, 0, 50) }, 0.2)
+		
+		local textSize = game:GetService("TextService"):GetTextSize(config.Text, 12, Enum.Font.Gotham, Vector2.new(math.huge, 16)).X + 10
+		if textSize > 250 then
+			BetterTween(notification, { Size = UDim2.new(0, textSize, 0, 50) }, 0.2)
+		else
+			BetterTween(notification, { Size = UDim2.new(0, 250, 0, 50) }, 0.2)
+		end
 		-- dragging
 		utility:DraggingEnabled(notification)
 
