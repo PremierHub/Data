@@ -560,7 +560,7 @@ do
 			Visible = false,
 		}, {
 			newInstance("UIListLayout", {
-				Padding = UDim.new(0, 5),
+				Padding = UDim.new(0, 10),
 				SortOrder = Enum.SortOrder.LayoutOrder,
 			}),
 		})
