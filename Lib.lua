@@ -1,4 +1,5 @@
-repeat wait()
+repeat
+	wait()
 until game:IsLoaded() and game:GetService("Players").LocalPlayer:FindFirstChild("PlayerGui")
 
 if not game:GetService("UserInputService").MouseIconEnabled then
@@ -80,6 +81,22 @@ do
 				return i
 			end
 		end
+	end
+	function TableSort(pattern, values)
+		local new = {}
+		pattern = pattern:lower()
+		
+		if pattern == "" then
+			return values
+		end
+		
+		for i, value in pairs(values) do
+			if tostring(value):lower():find(pattern) then
+				table.insert(new, value)
+			end
+		end
+		
+		return new
 	end
 	function BetterWait()
 		game:GetService("RunService").RenderStepped:Wait()
@@ -1778,7 +1795,7 @@ do
 
 		search.TextBox:GetPropertyChangedSignal("Text"):Connect(function()
 			if focused then
-				local list = utility:Sort(search.TextBox.Text, list)
+				local list = TableSort(search.TextBox.Text, list)
 				list = #list ~= 0 and list
 
 				self:updateDropdown(
