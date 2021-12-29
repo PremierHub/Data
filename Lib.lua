@@ -971,7 +971,7 @@ do
 		self.toggling = false
 	end
 	function page:Resize()
-		local size = 0
+		local size = 0 + ((#self.sections > 1 and #self.sections or 0) * 5)
 
 		for i, section in pairs(self.sections) do
 			size = size + section.container.AbsoluteSize.Y
