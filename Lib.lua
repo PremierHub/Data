@@ -971,10 +971,10 @@ do
 		self.toggling = false
 	end
 	function page:Resize()
-		local size = 0 + ((#self.sections > 1 and #self.sections or 0) * 5)
+		local size = 0
 
 		for i, section in pairs(self.sections) do
-			size = size + section.container.AbsoluteSize.Y
+			size = size + section.container.AbsoluteSize.Y + 5
 		end
 
 		self.container.CanvasSize = UDim2.new(0, 0, 0, size)
