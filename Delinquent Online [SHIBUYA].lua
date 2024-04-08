@@ -28,7 +28,7 @@ function AutoFarm()
     if not _G.AutoFarm then return end
 
     -- TP to NPC mission
-    if not notworkspace.QuestPlaces.DelieveryQuest:FindFirstChild('TouchInterest') then
+    if not workspace.QuestPlaces.DelieveryQuest:FindFirstChild('TouchInterest') then
         spawn(function()
             repeat task.wait()
                 Player.Character.HumanoidRootPart.CFrame = workspace.NPCS.DeliveryQuest.HumanoidRootPart.CFrame
