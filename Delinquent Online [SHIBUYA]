@@ -17,6 +17,8 @@ gt.__newindex = function(self ,key, value)
     old(self, key, value)
 end
 
+repeat task.wait() until not _G.AutoFarm or workspace.NPCS:FindFirstChild('DeliveryQuest')
+
 function AutoFarm()
     if not _G.AutoFarm then return end
     if not workspace.QuestPlaces.DelieveryQuest:FindFirstChild('TouchInterest') then
