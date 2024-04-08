@@ -7,6 +7,7 @@ _G.AutoFarm = true
 local Player = game.Players.LocalPlayer
 local VirtualUser = game:GetService("VirtualUser")
 
+-- Anti-TP Bypass
 local gt = getrawmetatable(game)
 local old = gt.__newindex
 setreadonly(gt, false)
@@ -17,11 +18,17 @@ gt.__newindex = function(self ,key, value)
     old(self, key, value)
 end
 
-repeat task.wait() until not _G.AutoFarm or workspace.NPCS:FindFirstChild('DeliveryQuest')
+-- Wait for instances
+print('Waiting for instances...')
+repeat task.wait() until workspace.NPCS:FindFirstChild('DeliveryQuest') and workspace.QuestPlaces:FindFirstChild('DelieveryQuest')
+print('Instances loaded')
 
+-- AutoFarm function
 function AutoFarm()
     if not _G.AutoFarm then return end
-    if not workspace.QuestPlaces:FindFirstChild('DelieveryQuest') or notworkspace.QuestPlaces.DelieveryQuest:FindFirstChild('TouchInterest') then
+
+    -- TP to NPC mission
+    if not notworkspace.QuestPlaces.DelieveryQuest:FindFirstChild('TouchInterest') then
         spawn(function()
             repeat task.wait()
                 Player.Character.HumanoidRootPart.CFrame = workspace.NPCS.DeliveryQuest.HumanoidRootPart.CFrame
@@ -29,11 +36,13 @@ function AutoFarm()
         end)
     end
 
+    -- Get Mission
     repeat
         fireproximityprompt(workspace.NPCS.DeliveryQuest.Torso.ProximityPrompt)
         task.wait(0.2)
     until not _G.AutoFarm or Player.PlayerGui.HUD.Dialogue.Visible
 
+    -- Accept Mission
     repeat task.wait(0.2)
         VirtualUser:CaptureController()
         VirtualUser:ClickButton1(Vector2.new(0, 0))
@@ -42,11 +51,15 @@ function AutoFarm()
         end
     until not _G.AutoFarm or not Player.PlayerGui.HUD.Dialogue.Visible
 
+    -- Complete Mission
     repeat task.wait()
         pcall(function()
             Player.Character.HumanoidRootPart.CFrame = workspace.QuestPlaces.DelieveryQuest.CFrame
         end)
     until not _G.AutoFarm or workspace.QuestPlaces:FindFirstChild('DelieveryQuest') or not workspace.QuestPlaces.DelieveryQuest:FindFirstChild('TouchInterest')
+
+    -- Repeat Function
     AutoFarm()
 end
+
 AutoFarm()
