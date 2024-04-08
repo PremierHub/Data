@@ -25,7 +25,7 @@ function AutoFarm()
         spawn(function()
             repeat task.wait()
                 Player.Character.HumanoidRootPart.CFrame = workspace.NPCS.DeliveryQuest.HumanoidRootPart.CFrame
-            until not _G.AutoFarm or workspace.QuestPlaces.DelieveryQuest:FindFirstChild('TouchInterest')
+            until not _G.AutoFarm or workspace.QuestPlaces:FindFirstChild('DelieveryQuest') and workspace.QuestPlaces.DelieveryQuest:FindFirstChild('TouchInterest')
         end)
     end
 
@@ -36,7 +36,7 @@ function AutoFarm()
 
     repeat task.wait(0.2)
         VirtualUser:CaptureController()
-        VirtualUser:ClickButton1(Vector2.new(0, 0))
+        VirtualUser:ClickButton1(Vector2.new(-99999, -99999))
         if Player.PlayerGui.HUD.Dialogue.Accept.Visible then
             firesignal(Player.PlayerGui.HUD.Dialogue.Accept.Activated)
         end
@@ -46,7 +46,7 @@ function AutoFarm()
         pcall(function()
             Player.Character.HumanoidRootPart.CFrame = workspace.QuestPlaces.DelieveryQuest.CFrame
         end)
-    until not _G.AutoFarm or not workspace.QuestPlaces.DelieveryQuest:FindFirstChild('TouchInterest')
+    until not _G.AutoFarm or workspace.QuestPlaces:FindFirstChild('DelieveryQuest') or not workspace.QuestPlaces.DelieveryQuest:FindFirstChild('TouchInterest')
     AutoFarm()
 end
 AutoFarm()
