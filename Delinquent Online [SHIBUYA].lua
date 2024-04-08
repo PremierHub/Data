@@ -36,7 +36,7 @@ function AutoFarm()
 
     repeat task.wait(0.2)
         VirtualUser:CaptureController()
-        VirtualUser:ClickButton1(Vector2.new())
+        VirtualUser:ClickButton1(Vector2.new(0, 0))
         if Player.PlayerGui.HUD.Dialogue.Accept.Visible then
             firesignal(Player.PlayerGui.HUD.Dialogue.Accept.Activated)
         end
