@@ -18,18 +18,22 @@ gt.__newindex = function(self ,key, value)
     old(self, key, value)
 end
 
--- Wait for instances
-print('Waiting for instances...')
-repeat task.wait() until workspace.NPCS:FindFirstChild('DeliveryQuest') and workspace.QuestPlaces:FindFirstChild('DelieveryQuest')
-print('Instances loaded')
-
 -- AutoFarm function
 function AutoFarm()
     if not _G.AutoFarm then return end
 
+    if not workspace.NPCS:FindFirstChild('DeliveryQuest') or not workspace.QuestPlaces:FindFirstChild('DelieveryQuest') then
+        -- Wait for instances
+        print('Waiting for instances...')
+        repeat task.wait()
+            game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-33, 3.89600039, -105)
+        until workspace.NPCS:FindFirstChild('DeliveryQuest') and workspace.QuestPlaces:FindFirstChild('DelieveryQuest')
+        print('Instances loaded')
+    end
+
     -- TP to NPC mission
     print('TP to NPC mission')
-    if not workspace.QuestPlaces.DelieveryQuest:FindFirstChild('TouchInterest') then
+    if not workspace.QuestPlaces.DelieveryQuest.Attachment:FindFirstChild('QuestPing') then
         spawn(function()
             repeat task.wait()
                 Player.Character.HumanoidRootPart.CFrame = workspace.NPCS.DeliveryQuest.HumanoidRootPart.CFrame
@@ -54,13 +58,22 @@ function AutoFarm()
         end
     until not _G.AutoFarm or not Player.PlayerGui.HUD.Dialogue.Visible
 
+    if not workspace.NPCS:FindFirstChild('DeliveryQuest') or not workspace.QuestPlaces:FindFirstChild('DelieveryQuest') then
+        -- Wait for instances
+        print('Waiting for instances...')
+        repeat task.wait()
+            game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-33, 3.89600039, -105)
+        until workspace.NPCS:FindFirstChild('DeliveryQuest') and workspace.QuestPlaces:FindFirstChild('DelieveryQuest')
+        print('Instances loaded')
+    end
+
     -- Complete Mission
     print('Complete Mission')
     repeat task.wait()
         pcall(function()
             Player.Character.HumanoidRootPart.CFrame = workspace.QuestPlaces.DelieveryQuest.CFrame
         end)
-    until not _G.AutoFarm or workspace.QuestPlaces:FindFirstChild('DelieveryQuest') or not workspace.QuestPlaces.DelieveryQuest:FindFirstChild('TouchInterest')
+    until not _G.AutoFarm or not workspace.QuestPlaces.DelieveryQuest.Attachment:FindFirstChild('QuestPing')
 
     -- Repeat Function
     AutoFarm()
