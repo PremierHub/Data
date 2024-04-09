@@ -45,7 +45,7 @@ function AutoFarm()
     print('Get Mission')
     repeat
         fireproximityprompt(workspace.NPCS.DeliveryQuest.Torso.ProximityPrompt)
-        task.wait(0.2)
+        task.wait(0.5)
     until not _G.AutoFarm or Player.PlayerGui.HUD.Dialogue.Visible
 
     -- Accept Mission
@@ -74,7 +74,7 @@ function AutoFarm()
             Player.Character.HumanoidRootPart.CFrame = workspace.QuestPlaces.DelieveryQuest.CFrame
         end)
     until not _G.AutoFarm or not workspace.QuestPlaces.DelieveryQuest.Attachment:FindFirstChild('QuestPing')
-
+    task.wait(0.1)
     -- Repeat Function
     AutoFarm()
 end
