@@ -19,7 +19,7 @@ gt.__newindex = function(self ,key, value)
 end
 
 -- Wait for instances
-print('Waiting for instances...')
+print('Waiting for instances....')
 repeat task.wait() until workspace.NPCS:FindFirstChild('DeliveryQuest') and workspace.QuestPlaces:FindFirstChild('DelieveryQuest')
 print('Instances loaded')
 
