@@ -19,7 +19,7 @@ gt.__newindex = function(self ,key, value)
 end
 
 -- Wait for instances
-print('Waiting for instances....')
+print('Waiting for instances...')
 repeat task.wait() until workspace.NPCS:FindFirstChild('DeliveryQuest') and workspace.QuestPlaces:FindFirstChild('DelieveryQuest')
 print('Instances loaded')
 
@@ -28,6 +28,7 @@ function AutoFarm()
     if not _G.AutoFarm then return end
 
     -- TP to NPC mission
+    print('TP to NPC mission')
     if not workspace.QuestPlaces.DelieveryQuest:FindFirstChild('TouchInterest') then
         spawn(function()
             repeat task.wait()
@@ -37,12 +38,14 @@ function AutoFarm()
     end
 
     -- Get Mission
+    print('Get Mission')
     repeat
         fireproximityprompt(workspace.NPCS.DeliveryQuest.Torso.ProximityPrompt)
         task.wait(0.2)
     until not _G.AutoFarm or Player.PlayerGui.HUD.Dialogue.Visible
 
     -- Accept Mission
+    print('Accept Mission')
     repeat task.wait(0.2)
         VirtualUser:CaptureController()
         VirtualUser:ClickButton1(Vector2.new(0, 0))
@@ -52,6 +55,7 @@ function AutoFarm()
     until not _G.AutoFarm or not Player.PlayerGui.HUD.Dialogue.Visible
 
     -- Complete Mission
+    print('Complete Mission')
     repeat task.wait()
         pcall(function()
             Player.Character.HumanoidRootPart.CFrame = workspace.QuestPlaces.DelieveryQuest.CFrame
