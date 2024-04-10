@@ -290,6 +290,21 @@ do
         _G.Targets = nil
     end)
 
+    local Toggle3 = Tabs.Main:AddToggle("RerollToggle", {
+        Title = "Buy Rerolls",
+        Default = false
+    })
+
+    Toggle3:OnChanged(function()
+        print("Buy Rerolls changed:", Options.RerollToggle.Value)
+        while Options.RerollToggle.Value and tonumber((Player.PlayerGui.Main.Money.TextLabel.Text:gsub('¥ ', ''))) >= 400 do
+            task.wait(0.2)
+            fireproximityprompt(workspace.NPCS.RerollsYen.HumanoidRootPart.Attachment.ProximityPrompt)
+        end
+        if Options.RerollToggle.Value then
+            Options.RerollToggle:SetValue(false)
+        end
+    end)
 end
 
 InterfaceManager.Settings.Theme = "Darker"
