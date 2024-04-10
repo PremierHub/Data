@@ -19,6 +19,7 @@ local Options = Fluent.Options
 
 do
     local Player = game.Players.LocalPlayer
+    local Mouse = Player:GetMouse()
     local VirtualUser = game:GetService("VirtualUser")
 
     -- Anti-TP Bypass
@@ -38,7 +39,7 @@ do
     })
 
     Toggle:OnChanged(function()
-        print("Toggle changed:", Options.AFToggle.Value)
+        print("AutoFarm changed:", Options.AFToggle.Value)
       
         if not Options.AFToggle.Value then return end
 
@@ -153,8 +154,111 @@ do
     })
 
     Dropdown:OnChanged(function(Value)
-        print("Dropdown changed:", Value, Options.QuestsDropdown.Value)
+        print("Quest changed:", Value, Options.QuestsDropdown.Value)
     end)
+    
+    local Toggle2 = Tabs.Main:AddToggle("AimToggle", {
+        Title = "Aim Assist",
+        Default = false
+    })
+
+    Toggle2:OnChanged(function()
+        print("Aim Assist changed:", Options.AimToggle.Value)
+    end)
+
+    local Slider = Tabs.Main:AddSlider("DistSlider", {
+        Title = "Distance",
+        Default = 20,
+        Min = 10,
+        Max = 50,
+        Rounding = 1
+    })
+
+    if _G.Targets then
+        _G.Targets:Destroy()
+        task.wait()
+    end
+    _G.Targets = Instance.new('Folder')
+    local ib_a = game:GetService("UserInputService").InputBegan:Connect(function(input, _gameProcessed)
+        if input.UserInputType == Enum.UserInputType.MouseButton3 then
+            local Target = Mouse.Target and game.Players:FindFirstChild(Mouse.Target:GetFullName():split(".")[3])
+            if Target then
+                if _G.Targets:FindFirstChild(Target.Name) then
+                    _G.Targets[Target.Name]:Destroy()
+                else
+                    local newTarget = Instance.new('StringValue')
+                    newTarget.Name = Target.Name
+                    newTarget.Parent = _G.Targets
+                end
+            end
+        end
+    end)
+    local Highlight = Instance.new("Highlight")
+    Highlight.Name = 'AssistESP'
+    Highlight.FillTransparency = 0.9
+    
+    local function Tween(instance: Instance, properties, duration: number, ...)
+        local tween = game:GetService("TweenService"):Create(instance, TweenInfo.new(duration, ...), properties)
+        tween:Play()
+        return tween
+    end
+
+    _G.Targets.ChildAdded:Connect(function(child)
+        local plr = game.Players[child.Name]
+        local function addESP()
+            plr.Character:WaitForChild('Humanoid')
+            plr.Character:WaitForChild('HumanoidRootPart')
+
+            local Highlight_Clone = Highlight:Clone()
+            Highlight_Clone.Adornee = plr.Character
+            Highlight_Clone.Parent = plr.Character.HumanoidRootPart
+            Highlight_Clone.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+
+            local a = game:GetService("RunService").RenderStepped:Connect(function()
+                if Options.AimToggle.Value and (Player.Character.HumanoidRootPart.Position - plr.Character.HumanoidRootPart.Position).Magnitude < tonumber(Options.DistSlider.Value) then
+                    workspace.CurrentCamera.CFrame = CFrame.new(workspace.CurrentCamera.CFrame.Position, plr.Character.HumanoidRootPart.Position)
+                end
+            end)
+            plr.Character.Humanoid.Died:Connect(function()
+                pcall(function()
+                    a:Disconnect()
+                end)
+            end)
+            _G.Targets.ChildRemoved:Connect(function(child_removed)
+                if child == child_removed then
+                    pcall(function()
+                        if plr.Character.HumanoidRootPart:FindFirstChild('AssistESP') then
+                            plr.Character.HumanoidRootPart:FindFirstChild('AssistESP'):Destroy()
+                        end
+                        a:Disconnect()
+                    end)
+                end
+            end)
+        end
+        if plr.Character then
+            addESP()
+        end
+        local a = plr.CharacterAdded:Connect(function()
+            addESP()
+        end)
+        _G.Targets.ChildRemoved:Connect(function(child_removed)
+            if child == child_removed then
+                pcall(function()
+                    if plr.Character.HumanoidRootPart:FindFirstChild('AssistESP') then
+                        plr.Character.HumanoidRootPart:FindFirstChild('AssistESP'):Destroy()
+                    end
+                    a:Disconnect()
+                end)
+            end
+        end)
+    end)
+
+    _G.Targets.Destroying:Connect(function()
+        ib_a:Disconnect()
+        _G.Targets:ClearAllChildren()
+        _G.Targets = nil
+    end)
+
 end
 
 InterfaceManager.Settings.Theme = "Darker"
