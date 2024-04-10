@@ -1,3 +1,11 @@
+repeat task.wait() until game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild('Head') and game.Players.LocalPlayer.Character.Head:FindFirstChild('PlayerInfo') and game.Players.LocalPlayer.Character.Head.PlayerInfo:FindFirstChild('Frame') and game.Players.LocalPlayer.Character.Head.PlayerInfo.Frame:FindFirstChild('Group')
+
+if game.Players.LocalPlayer.Character.Head.PlayerInfo.Frame.Group.Text ~= 'Blood Demons' then
+    print('You do not have permissions to use this script.')
+    print('No tienes permisos para usar este script.')
+    return 
+end
+
 local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
 local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
 
@@ -38,11 +46,34 @@ do
         Default = false
     })
 
+    local Noclip = nil
+    local Clip = nil
+    function noclip()
+        Clip = false
+        local function Nocl()
+            if Clip == false and game.Players.LocalPlayer.Character ~= nil then
+                for _,v in pairs(game.Players.LocalPlayer.Character:GetDescendants()) do
+                    if v:IsA('BasePart') and v.CanCollide and v.Name ~= floatName then
+                        v.CanCollide = false
+                    end
+                end
+            end
+            wait(0.21)
+            if not Options.AFToggle.Value then clip() end
+        end
+        Noclip = game:GetService('RunService').Stepped:Connect(Nocl)
+    end
+    function clip()
+        if Noclip then Noclip:Disconnect() end
+        Clip = true
+    end
+
     Toggle:OnChanged(function()
         print("AutoFarm changed:", Options.AFToggle.Value)
       
-        if not Options.AFToggle.Value then return end
+        if not Options.AFToggle.Value then return clip() end
 
+        noclip()
         local QuestPlaces = {
             DeliveryQuest = {
                 'DelieveryQuest',
@@ -80,14 +111,15 @@ do
                 WaitForInstances(Options.QuestsDropdown.Value)
 
                 -- TP to NPC mission
-                print('TP to NPC mission')
+                local Accepted
                 if not workspace.QuestPlaces[QuestPlaces[Options.QuestsDropdown.Value][1]].Attachment:FindFirstChild('QuestPing') then
+                    print('TP to NPC mission')
                     spawn(function()
                         repeat task.wait()
                             Player.Character.HumanoidRootPart.CFrame = QuestPlaces[Options.QuestsDropdown.Value].NPC
-                        until not Options.AFToggle.Value or Player.PlayerGui.HUD.Dialogue.Visible --(Player.Character.HumanoidRootPart.Position - QuestPlaces[Options.QuestsDropdown.Value].NPC.Position).Magnitude <= 8
+                        until not Options.AFToggle.Value or Accepted --(Player.Character.HumanoidRootPart.Position - QuestPlaces[Options.QuestsDropdown.Value].NPC.Position).Magnitude <= 8
                     end)
-                else
+                elseif workspace.QuestPlaces[QuestPlaces[Options.QuestsDropdown.Value][1]].Attachment:FindFirstChild('QuestPing') then
                     -- Complete Mission
                     print('Complete Mission')
                     repeat task.wait()
@@ -95,7 +127,6 @@ do
                             Player.Character.HumanoidRootPart.CFrame = QuestPlaces[Options.QuestsDropdown.Value].QPlace
                         end)
                     until not Options.AFToggle.Value or not workspace.QuestPlaces[QuestPlaces[Options.QuestsDropdown.Value][1]].Attachment:FindFirstChild('QuestPing')
-
                     if not Options.AFToggle.Value then return end
 
                     AutoFarm()
@@ -108,35 +139,35 @@ do
                         fireproximityprompt(workspace.NPCS[Options.QuestsDropdown.Value].Torso.ProximityPrompt)
                         task.wait(0.2)
                     until not Options.AFToggle.Value or Player.PlayerGui.HUD.Dialogue.Visible
-    
                     if not Options.AFToggle.Value then return end
                 end
 
                 -- Accept Mission
-                print('Accept Mission')
-                local Accepted
-                repeat task.wait(0.2)
-                    VirtualUser:CaptureController()
-                    VirtualUser:ClickButton1(Vector2.new(0, 0))
-                    if Player.PlayerGui.HUD.Dialogue.Accept.Visible and not Accepted then
-                        getconnections(game.Players.LocalPlayer.PlayerGui.HUD.Dialogue.Accept.Activated)[1].Function()
-                        Accepted = true
-                    end
-                until not Options.AFToggle.Value or not Player.PlayerGui.HUD.Dialogue.Visible
-
-                if not Options.AFToggle.Value then return end
+                if Player.PlayerGui.HUD.Dialogue.Visible then
+                    print('Accept Mission')
+                    repeat task.wait()
+                        VirtualUser:CaptureController()
+                        VirtualUser:ClickButton1(Vector2.new(9999, 9999))
+                        if Player.PlayerGui.HUD.Dialogue.Accept.Visible and not Accepted then
+                            getconnections(game.Players.LocalPlayer.PlayerGui.HUD.Dialogue.Accept.Activated)[1].Function()
+                            Accepted = true
+                        end
+                    until not Options.AFToggle.Value or not Player.PlayerGui.HUD.Dialogue.Visible and workspace.QuestPlaces[QuestPlaces[Options.QuestsDropdown.Value][1]].Attachment:FindFirstChild('QuestPing')
+                    if not Options.AFToggle.Value then return end
+                end
                 
                 WaitForInstances(Options.QuestsDropdown.Value)
 
                 -- Complete Mission
-                print('Complete Mission')
-                repeat task.wait()
-                    pcall(function()
-                        Player.Character.HumanoidRootPart.CFrame = QuestPlaces[Options.QuestsDropdown.Value].QPlace
-                    end)
-                until not Options.AFToggle.Value or not workspace.QuestPlaces[QuestPlaces[Options.QuestsDropdown.Value][1]].Attachment:FindFirstChild('QuestPing')
-
-                if not Options.AFToggle.Value then return end
+                if workspace.QuestPlaces[QuestPlaces[Options.QuestsDropdown.Value][1]].Attachment:FindFirstChild('QuestPing') then
+                    print('Complete Mission')
+                    repeat task.wait()
+                        pcall(function()
+                            Player.Character.HumanoidRootPart.CFrame = QuestPlaces[Options.QuestsDropdown.Value].QPlace
+                        end)
+                    until not Options.AFToggle.Value or not workspace.QuestPlaces[QuestPlaces[Options.QuestsDropdown.Value][1]].Attachment:FindFirstChild('QuestPing')
+                    if not Options.AFToggle.Value then return end
+                end
             end)
 
             -- Repeat Function
